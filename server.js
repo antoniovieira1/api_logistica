@@ -26,20 +26,19 @@ const allowedOrigins = [
   'https://www.mercotech.com.br',
   'https://mercotech.com.br'
 ];
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        console.error('CORS Blocked Origin:', origin);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-  })
-);
+app.set('trust proxy', 1);
 
+app.use(session({
+    secret: process.env.SESSION_SECRET2,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: true,
+        httpOnly: true,
+        sameSite: 'none',
+        maxAge: 8 * 60 * 60 * 1000 // 8 horas
+    }
+}));
 app.use(session({
     secret: process.env.SESSION_SECRET2,
     resave: false,                      
