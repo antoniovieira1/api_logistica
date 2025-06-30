@@ -82,7 +82,7 @@ const isAuthenticated = (req, res, next) => {
     }
 };
 
-app.get('/api/logistica/dados-view', async (req, res) => {
+app.get('/api/logistica/dados-view', isAuthenticated, async (req, res) => {
   const viewName = process.env.DB_VIEW2;
   try {
     await sql.connect(dbConfig);
@@ -97,6 +97,7 @@ app.get('/api/logistica/dados-view', async (req, res) => {
     });
   }
 });
+
 
 app.listen(PORT, () => {
   console.log(`Servidor backend rodando na porta ${PORT}`);
