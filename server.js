@@ -22,12 +22,28 @@ const dbConfig = {
 };
 
 app.use(express.json());
+
+
 const allowedOrigins = [
   'https://www.mercotech.com.br',
   'https://mercotech.com.br'
 ];
-app.set('trust proxy', 1);
 
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        console.error('CORS Blocked Origin:', origin);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  })
+);
+
+app.set('trust proxy', 1);
 app.use(session({
     secret: process.env.SESSION_SECRET2,
     resave: false,
@@ -36,17 +52,7 @@ app.use(session({
         secure: true,
         httpOnly: true,
         sameSite: 'none',
-        maxAge: 8 * 60 * 60 * 1000 // 8 horas
-    }
-}));
-app.use(session({
-    secret: process.env.SESSION_SECRET2,
-    resave: false,                      
-    saveUninitialized: false,           
-    cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,                               
-        maxAge: 8 * 60 * 60 * 1000                    
+        maxAge: 8 * 60 * 60 * 1000
     }
 }));
 
@@ -57,6 +63,8 @@ app.post('/api/logistica/login', (req, res) => {
             username: username,
             loggedIn: true
         };
+        
+        console.log('Sessão criada para o usuário:', req.session.user);
         res.json({ success: true, message: 'Login bem-sucedido.' });
     } else {
         res.status(401).json({ success: false, message: 'Usuário ou senha inválidos.' });
@@ -74,6 +82,7 @@ app.post('/api/logistica/logout', (req, res) => {
 });
 
 const isAuthenticated = (req, res, next) => {
+    console.log('Verificando sessão na rota protegida:', req.session);
     if (req.session.user && req.session.user.loggedIn) {
         next();
     } else {
@@ -96,7 +105,6 @@ app.get('/api/logistica/dados-view', isAuthenticated, async (req, res) => {
     });
   }
 });
-
 
 app.listen(PORT, () => {
   console.log(`Servidor backend rodando na porta ${PORT}`);
